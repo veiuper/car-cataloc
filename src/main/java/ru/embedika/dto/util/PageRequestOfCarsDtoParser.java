@@ -20,7 +20,7 @@ public class PageRequestOfCarsDtoParser {
                     )
             );
         }
-        if (dto.getSize() < 0) {
+        if (dto.getSize() < 1) {
             throw new ParsException(
                     MessageFormat.format(
                             "The parameter \"size\" value must be greater than one: {0}", dto.getSize()

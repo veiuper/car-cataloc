@@ -4,9 +4,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import ru.embedika.exception.NoObjectCreated;
+import ru.embedika.exception.NoObjectDeleted;
+import ru.embedika.exception.ResourceNotFoundException;
 import ru.embedika.model.CarsBrand;
 import ru.embedika.repository.CarsBrandRepository;
 
+import java.text.MessageFormat;
 import java.util.Optional;
 
 @Service
@@ -18,11 +22,17 @@ public class CarsBrandService {
     }
 
     public CarsBrand save(CarsBrand carsBrand) {
-        if (carsBrand.getId() != null && carsBrandRepository.existsById(carsBrand.getId())) {
-            return null;
+        if (carsBrand.getName() != null && carsBrandRepository.existsByNameIgnoreCase(carsBrand.getName())) {
+            throw new NoObjectCreated("The object already exists");
         }
         carsBrand.setId(0);
-        return carsBrandRepository.save(carsBrand);
+        CarsBrand saved;
+        try {
+            saved = carsBrandRepository.save(carsBrand);
+        } catch (RuntimeException e) {
+            throw new NoObjectCreated("The object has not been created");
+        }
+        return saved;
     }
 
     public Slice<CarsBrand> findAll(Integer page, Integer size, Pageable pageableDefault) {
@@ -30,11 +40,20 @@ public class CarsBrandService {
         if (page != null || size != null) {
             pageable = PageRequest.of((page == null) ? 0 : page, size == null ? pageableDefault.getPageSize() : size);
         }
-        return carsBrandRepository.findAll(pageable);
+        Slice<CarsBrand> carsBrandSlice = carsBrandRepository.findAll(pageable);
+        if (carsBrandSlice.isEmpty()) {
+            throw new ResourceNotFoundException("No data on car brands found");
+        }
+        return carsBrandSlice;
     }
 
-    public Optional<CarsBrand> findById(int id) {
-        return carsBrandRepository.findById(id);
+    public CarsBrand findById(int id) {
+        return carsBrandRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                MessageFormat.format(
+                                        "The brand of cars with id {0} was not found", id
+                                )));
     }
 
     public boolean existsById(int id) {
@@ -45,13 +64,16 @@ public class CarsBrandService {
         return carsBrandRepository.count();
     }
 
-    public boolean deleteById(int id) {
-        if (carsBrandRepository.existsById(id)) {
-            //TODO Поглощенные исключения
-            carsBrandRepository.deleteById(id);
-            return true;
+    public void deleteById(int id) {
+        boolean existsById = carsBrandRepository.existsById(id);
+        if (!existsById) {
+            throw new ResourceNotFoundException("Object not found");
         }
-        return false;
+        try {
+            carsBrandRepository.deleteById(id);
+        } catch (RuntimeException e) {
+            throw new NoObjectDeleted("The object could not be deleted");
+        }
     }
 
     public Optional<CarsBrand> findByNameIgnoreCase(String name) {

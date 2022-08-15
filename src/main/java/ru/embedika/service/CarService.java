@@ -1,16 +1,19 @@
 package ru.embedika.service;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import ru.embedika.dto.PageRequestOfCarsDto;
 import ru.embedika.dto.util.PageRequestOfCarsDtoParser;
+import ru.embedika.exception.NoObjectCreated;
+import ru.embedika.exception.NoObjectDeleted;
+import ru.embedika.exception.ResourceNotFoundException;
 import ru.embedika.model.Car;
 import ru.embedika.model.CarsBrand;
 import ru.embedika.model.CarsColor;
 import ru.embedika.repository.CarRepository;
 
+import java.text.MessageFormat;
 import java.util.Optional;
 
 @Service
@@ -26,23 +29,20 @@ public class CarService {
     }
 
     public Slice<Car> findAll(PageRequestOfCarsDto dto, Pageable pageableDefault) {
-        PageRequest request = null;
-        if (dto != null) {
-            request = PageRequestOfCarsDtoParser.pars(dto);
+        Pageable request = (dto == null) ? pageableDefault : PageRequestOfCarsDtoParser.pars(dto);
+        Slice<Car> carSlice = carRepository.findAll(request);
+        if (carSlice.isEmpty()) {
+            throw new ResourceNotFoundException("No car data found");
         }
-        if (request != null) {
-            return carRepository.findAll(request);
-        } else {
-            return carRepository.findAll(pageableDefault);
-        }
+        return carSlice;
     }
 
     public Car save(Car car) {
+        // Car exists
         if (car.getCarNumber() != null && carRepository.existsByCarNumberIgnoreCase(car.getCarNumber())) {
-            return null;
+            throw new NoObjectCreated("The object already exists");
         }
         //TODO Нужна транзакция на все изменения
-
         // Car's brand exists
         Optional<CarsBrand> optionalCarsBrand = carsBrandService.findByNameIgnoreCase(car.getCarsBrand().getName());
         if (optionalCarsBrand.isPresent()) {
@@ -51,9 +51,6 @@ public class CarService {
             // New car's brand
             car.getCarsBrand().setId(0);
             CarsBrand carsBrand = carsBrandService.save(car.getCarsBrand());
-            if (carsBrand == null) {
-                return null;
-            }
             car.setCarsBrand(carsBrand);
         }
         // Car's color exists
@@ -64,28 +61,39 @@ public class CarService {
             // New car's color
             car.getCarsColor().setId(0);
             CarsColor carsColor = carsColorService.save(car.getCarsColor());
-            if (carsColor == null) {
-                return null;
-            }
             car.setCarsColor(carsColor);
         }
-        return carRepository.save(car);
+        Car saved;
+        try {
+            saved = carRepository.save(car);
+        } catch (RuntimeException e) {
+            throw new NoObjectCreated("The object has not been created");
+        }
+        return saved;
     }
 
-    public Optional<Car> findById(String carNumber) {
-        return carRepository.findByCarNumberIgnoreCase(carNumber);
+    public Car findById(String carNumber) {
+        return carRepository.findByCarNumberIgnoreCase(carNumber)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                MessageFormat.format(
+                                        "The car with the license plate {0} was not found", carNumber
+                                )));
     }
 
     public long count() {
         return carRepository.count();
     }
 
-    public boolean deleteById(String carNumber) {
+    public void deleteById(String carNumber) {
         final Optional<Car> optionalCar = carRepository.findByCarNumberIgnoreCase(carNumber);
-        if (optionalCar.isPresent()) {
-            carRepository.deleteById(carNumber);
-            return true;
+        if (optionalCar.isEmpty()) {
+            throw new ResourceNotFoundException("Object not found");
         }
-        return false;
+        try {
+            carRepository.deleteById(carNumber);
+        } catch (RuntimeException e) {
+            throw new NoObjectDeleted("The object could not be deleted");
+        }
     }
 }

@@ -19,7 +19,6 @@ public class Car {
     @ManyToOne()
     @JoinColumn(name = "cars_color")
     private CarsColor carsColor;
-    //TODO Ограничить длину поля? Как производится сохранения данного типа данных в реляционной БД
     @Temporal(TemporalType.DATE)
     @Column(name = "release_year", nullable = false)
     private Date releaseYear;

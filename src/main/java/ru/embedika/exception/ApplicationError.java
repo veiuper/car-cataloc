@@ -1,17 +1,13 @@
-package ru.embedika.dto.response;
+package ru.embedika.exception;
 
-public class Response {
+public class ApplicationError {
     private int statusCode;
     private String message;
 
-    public Response() {
+    public ApplicationError() {
     }
 
-    public Response(int statusCode) {
-        this.statusCode = statusCode;
-    }
-
-    public Response(int statusCode, String message) {
+    public ApplicationError(int statusCode, String message) {
         this.statusCode = statusCode;
         this.message = message;
     }

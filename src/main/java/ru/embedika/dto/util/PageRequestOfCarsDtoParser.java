@@ -4,7 +4,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import ru.embedika.dto.PageRequestOfCarsDto;
 import ru.embedika.dto.SortOfCarsDto;
-import ru.embedika.exception.BusinessException;
+import ru.embedika.exception.ParsException;
 
 import java.text.MessageFormat;
 
@@ -12,16 +12,16 @@ public class PageRequestOfCarsDtoParser {
     public PageRequestOfCarsDtoParser() {
     }
 
-    public static PageRequest pars(PageRequestOfCarsDto dto) throws BusinessException {
+    public static PageRequest pars(PageRequestOfCarsDto dto) throws ParsException {
         if (dto.getPage() < 0) {
-            throw new BusinessException(
+            throw new ParsException(
                     MessageFormat.format(
                             "The parameter \"page\" value must be greater than zero: {0}", dto.getPage()
                     )
             );
         }
         if (dto.getSize() < 0) {
-            throw new BusinessException(
+            throw new ParsException(
                     MessageFormat.format(
                             "The parameter \"size\" value must be greater than one: {0}", dto.getSize()
                     )

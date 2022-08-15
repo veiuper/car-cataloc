@@ -4,9 +4,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import ru.embedika.exception.NoObjectCreated;
+import ru.embedika.exception.NoObjectDeleted;
+import ru.embedika.exception.ResourceNotFoundException;
 import ru.embedika.model.CarsColor;
 import ru.embedika.repository.CarsColorRepository;
 
+import java.text.MessageFormat;
 import java.util.Optional;
 
 @Service
@@ -18,11 +22,17 @@ public class CarsColorService {
     }
 
     public CarsColor save(CarsColor carsColor) {
-        if (carsColor.getId() != null && carsColorRepository.existsById(carsColor.getId())) {
-            return null;
+        if (carsColor.getName() != null && carsColorRepository.existsByNameIgnoreCase(carsColor.getName())) {
+            throw new NoObjectCreated("The object already exists");
         }
         carsColor.setId(0);
-        return carsColorRepository.save(carsColor);
+        CarsColor saved;
+        try {
+            saved = carsColorRepository.save(carsColor);
+        } catch (RuntimeException e) {
+            throw new NoObjectCreated("The object has not been created");
+        }
+        return saved;
     }
 
     public Slice<CarsColor> findAll(Integer page, Integer size, Pageable pageableDefault) {
@@ -30,11 +40,19 @@ public class CarsColorService {
         if (page != null || size != null) {
             pageable = PageRequest.of((page == null) ? 0 : page, size == null ? pageableDefault.getPageSize() : size);
         }
-        return carsColorRepository.findAll(pageable);
+        Slice<CarsColor> carsColorSlice = carsColorRepository.findAll(pageable);
+        if (carsColorSlice.isEmpty()) {
+            throw new ResourceNotFoundException("No car color data found");
+        }
+        return carsColorSlice;
     }
 
-    public Optional<CarsColor> findById(int id) {
-        return carsColorRepository.findById(id);
+    public CarsColor findById(int id) {
+        return carsColorRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                MessageFormat.format("Color of cars with id {0} not found", id)
+                        ));
     }
 
     public boolean existsById(int id) {
@@ -45,13 +63,16 @@ public class CarsColorService {
         return carsColorRepository.count();
     }
 
-    public boolean deleteById(int id) {
-        if (carsColorRepository.existsById(id)) {
-            //TODO Поглощенные исключения
-            carsColorRepository.deleteById(id);
-            return true;
+    public void deleteById(int id) {
+        boolean existsById = carsColorRepository.existsById(id);
+        if (!existsById) {
+            throw new ResourceNotFoundException("Object not found");
         }
-        return false;
+        try {
+            carsColorRepository.deleteById(id);
+        } catch (RuntimeException e) {
+            throw new NoObjectDeleted("The object could not be deleted");
+        }
     }
 
     public Optional<CarsColor> findByNameIgnoreCase(String name) {

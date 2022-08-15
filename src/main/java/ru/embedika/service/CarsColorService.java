@@ -4,8 +4,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
-import ru.embedika.exception.NoObjectCreated;
-import ru.embedika.exception.NoObjectDeleted;
+import ru.embedika.exception.NoObjectCreatedException;
+import ru.embedika.exception.NoObjectDeletedException;
 import ru.embedika.exception.ResourceNotFoundException;
 import ru.embedika.model.CarsColor;
 import ru.embedika.repository.CarsColorRepository;
@@ -23,14 +23,14 @@ public class CarsColorService {
 
     public CarsColor save(CarsColor carsColor) {
         if (carsColor.getName() != null && carsColorRepository.existsByNameIgnoreCase(carsColor.getName())) {
-            throw new NoObjectCreated("The object already exists");
+            throw new NoObjectCreatedException("The object already exists");
         }
         carsColor.setId(0);
         CarsColor saved;
         try {
             saved = carsColorRepository.save(carsColor);
         } catch (RuntimeException e) {
-            throw new NoObjectCreated("The object has not been created");
+            throw new NoObjectCreatedException("The object has not been created");
         }
         return saved;
     }
@@ -71,7 +71,7 @@ public class CarsColorService {
         try {
             carsColorRepository.deleteById(id);
         } catch (RuntimeException e) {
-            throw new NoObjectDeleted("The object could not be deleted");
+            throw new NoObjectDeletedException("The object could not be deleted");
         }
     }
 

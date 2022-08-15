@@ -5,8 +5,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import ru.embedika.dto.PageRequestOfCarsDto;
 import ru.embedika.dto.util.PageRequestOfCarsDtoParser;
-import ru.embedika.exception.NoObjectCreated;
-import ru.embedika.exception.NoObjectDeleted;
+import ru.embedika.exception.NoObjectCreatedException;
+import ru.embedika.exception.NoObjectDeletedException;
 import ru.embedika.exception.ResourceNotFoundException;
 import ru.embedika.model.Car;
 import ru.embedika.model.CarsBrand;
@@ -40,7 +40,7 @@ public class CarService {
     public Car save(Car car) {
         // Car exists
         if (car.getCarNumber() != null && carRepository.existsByCarNumberIgnoreCase(car.getCarNumber())) {
-            throw new NoObjectCreated("The object already exists");
+            throw new NoObjectCreatedException("The object already exists");
         }
         //TODO Нужна транзакция на все изменения
         // Car's brand exists
@@ -67,7 +67,7 @@ public class CarService {
         try {
             saved = carRepository.save(car);
         } catch (RuntimeException e) {
-            throw new NoObjectCreated("The object has not been created");
+            throw new NoObjectCreatedException("The object has not been created");
         }
         return saved;
     }
@@ -93,7 +93,7 @@ public class CarService {
         try {
             carRepository.deleteById(carNumber);
         } catch (RuntimeException e) {
-            throw new NoObjectDeleted("The object could not be deleted");
+            throw new NoObjectDeletedException("The object could not be deleted");
         }
     }
 }

@@ -4,13 +4,11 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "cars_brand")
-//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = Integer.class)
 public class CarsBrand {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer Id;
-    //TODO Сделать по максимальной длине загруженных данных
     @Column(name = "name", unique = true, nullable = false, length = 150)
     private String name;
 

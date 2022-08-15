@@ -42,7 +42,6 @@ public class CarService {
         if (car.getCarNumber() != null && carRepository.existsByCarNumberIgnoreCase(car.getCarNumber())) {
             throw new NoObjectCreatedException("The object already exists");
         }
-        //TODO Нужна транзакция на все изменения
         // Car's brand exists
         Optional<CarsBrand> optionalCarsBrand = carsBrandService.findByNameIgnoreCase(car.getCarsBrand().getName());
         if (optionalCarsBrand.isPresent()) {

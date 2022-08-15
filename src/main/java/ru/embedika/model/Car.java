@@ -14,9 +14,11 @@ public class Car {
     @Column(name = "car_number", unique = true, nullable = false, length = 12)
     private String carNumber;
     @ManyToOne()
+    @JoinColumn(name = "cars_brand")
     private CarsBrand carsBrand;
     @ManyToOne()
-    private Color color;
+    @JoinColumn(name = "cars_color")
+    private CarsColor carsColor;
     //TODO Ограничить длину поля? Как производится сохранения данного типа данных в реляционной БД
     @Temporal(TemporalType.DATE)
     @Column(name = "release_year", nullable = false)
@@ -25,10 +27,10 @@ public class Car {
     public Car() {
     }
 
-    public Car(String carNumber, CarsBrand carsBrand, Color color, Date releaseYear) {
+    public Car(String carNumber, CarsBrand carsBrand, CarsColor carsColor, Date releaseYear) {
         this.carNumber = carNumber.trim().toUpperCase();
         this.carsBrand = carsBrand;
-        this.color = color;
+        this.carsColor = carsColor;
         this.releaseYear = releaseYear;
     }
 
@@ -48,12 +50,12 @@ public class Car {
         this.carsBrand = carsBrand;
     }
 
-    public Color getColor() {
-        return color;
+    public CarsColor getCarsColor() {
+        return carsColor;
     }
 
-    public void setColor(Color color) {
-        this.color = color;
+    public void setCarsColor(CarsColor carsColor) {
+        this.carsColor = carsColor;
     }
 
     public Date getReleaseYear() {

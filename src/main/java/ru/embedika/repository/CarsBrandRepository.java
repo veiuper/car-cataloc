@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface CarsBrandRepository extends PagingAndSortingRepository<CarsBrand, Integer> {
-    public Optional<CarsBrand> findByNameIgnoreCase(String name);
+    Optional<CarsBrand> findByNameIgnoreCase(String name);
 }

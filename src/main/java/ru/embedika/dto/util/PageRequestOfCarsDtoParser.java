@@ -2,7 +2,6 @@ package ru.embedika.dto.util;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.lang.NonNull;
 import ru.embedika.dto.PageRequestOfCarsDto;
 import ru.embedika.dto.SortOfCarsDto;
 import ru.embedika.exception.BusinessException;
@@ -10,14 +9,10 @@ import ru.embedika.exception.BusinessException;
 import java.text.MessageFormat;
 
 public class PageRequestOfCarsDtoParser {
-    private PageRequestOfCarsDto dto;
-
-    public PageRequestOfCarsDtoParser(@NonNull PageRequestOfCarsDto dto) {
-        this.dto = dto;
+    public PageRequestOfCarsDtoParser() {
     }
 
-    public PageRequest pars() throws BusinessException {
-        PageRequest pageRequest = null;
+    public static PageRequest pars(PageRequestOfCarsDto dto) throws BusinessException {
         if (dto.getPage() < 0) {
             throw new BusinessException(
                     MessageFormat.format(
